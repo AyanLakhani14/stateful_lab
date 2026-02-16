@@ -21,7 +21,7 @@ class CounterWidget extends StatefulWidget {
 }
 
 class _CounterWidgetState extends State<CounterWidget> {
-  int _counter = 0; // This is our STATE
+  int _counter = 0; // STATE
 
   @override
   Widget build(BuildContext context) {
@@ -40,16 +40,47 @@ class _CounterWidgetState extends State<CounterWidget> {
               ),
             ),
           ),
+
           SizedBox(height: 20),
+
           Slider(
-            min: 0, max: 100,
+            min: 0,
+            max: 100,
             value: _counter.toDouble(),
             onChanged: (double value) {
-              // 👇 This triggers the UI rebuild
               setState(() {
                 _counter = value.toInt();
               });
             },
+          ),
+
+          SizedBox(height: 20),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    _counter++;
+                  });
+                },
+                child: Text("+1"),
+              ),
+
+              SizedBox(width: 10),
+
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    _counter = 0;
+                  });
+                },
+                child: Text("Reset"),
+              ),
+
+            ],
           ),
         ],
       ),

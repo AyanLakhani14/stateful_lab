@@ -24,6 +24,9 @@ class _CounterWidgetState extends State<CounterWidget> {
   int _counter = 0; // STATE
   final TextEditingController _controller = TextEditingController();
 
+  // BONUS: history for undo
+  final List<int> _history = [];
+
   Color _counterColor() {
     if (_counter == 0) return Colors.red;
     if (_counter > 50) return Colors.green;
@@ -35,6 +38,30 @@ class _CounterWidgetState extends State<CounterWidget> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(msg)),
     );
+  }
+
+  void _saveHistory() {
+    _history.add(_counter);
+  }
+
+  void _setCounter(int value) {
+    // enforce range 0..100
+    if (value > 100) {
+      _showSnack("Limit Reached!");
+      value = 100;
+    }
+    if (value < 0) value = 0;
+
+    setState(() {
+      _counter = value;
+    });
+  }
+
+  void _undo() {
+    if (_history.isEmpty) return;
+    setState(() {
+      _counter = _history.removeLast();
+    });
   }
 
   @override
@@ -74,9 +101,8 @@ class _CounterWidgetState extends State<CounterWidget> {
                 max: 100,
                 value: _counter.toDouble(),
                 onChanged: (double value) {
-                  setState(() {
-                    _counter = value.toInt();
-                  });
+                  _saveHistory();
+                  _setCounter(value.toInt());
                 },
               ),
 
@@ -87,9 +113,8 @@ class _CounterWidgetState extends State<CounterWidget> {
                 children: [
                   ElevatedButton(
                     onPressed: () {
-                      setState(() {
-                        if (_counter > 0) _counter--;
-                      });
+                      _saveHistory();
+                      _setCounter(_counter - 1);
                     },
                     child: Text("-1"),
                   ),
@@ -98,10 +123,8 @@ class _CounterWidgetState extends State<CounterWidget> {
 
                   ElevatedButton(
                     onPressed: () {
-                      setState(() {
-                        _counter++;
-                        if (_counter > 100) _counter = 100;
-                      });
+                      _saveHistory();
+                      _setCounter(_counter + 1);
                     },
                     child: Text("+1"),
                   ),
@@ -110,11 +133,17 @@ class _CounterWidgetState extends State<CounterWidget> {
 
                   ElevatedButton(
                     onPressed: () {
-                      setState(() {
-                        _counter = 0;
-                      });
+                      _saveHistory();
+                      _setCounter(0);
                     },
                     child: Text("Reset"),
+                  ),
+
+                  SizedBox(width: 10),
+
+                  ElevatedButton(
+                    onPressed: _history.isEmpty ? null : _undo,
+                    child: Text("Undo"),
                   ),
                 ],
               ),
@@ -145,19 +174,8 @@ class _CounterWidgetState extends State<CounterWidget> {
                     return;
                   }
 
-                  if (value > 100) {
-                    _showSnack("Limit Reached!");
-                    return;
-                  }
-
-                  if (value < 0) {
-                    _showSnack("Value must be 0 or more.");
-                    return;
-                  }
-
-                  setState(() {
-                    _counter = value;
-                  });
+                  _saveHistory();
+                  _setCounter(value);
                 },
                 child: Text("Set Value"),
               ),
